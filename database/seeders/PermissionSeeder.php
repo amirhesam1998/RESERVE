@@ -1,0 +1,49 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Permission;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+
+class PermissionSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        $permissions = [
+            'create-roles',
+            'edit-roles',
+            'delete-roles',
+            'view-roles',
+            'assign-roles',
+            //-----------------
+            'create-clients',
+            'edit-clients',
+            'editpass-clients',
+            'delete-clients',
+            'view-admins',
+            //------------------
+            'view-categories',
+            'create-category',
+            'edit-categories',
+            'delete-categories',
+            //-------------------
+            'view-salons',
+            'create-salons',
+            'edit-salon',
+            'delete-salon'
+
+
+        ];
+
+        foreach ($permissions as $permissionName) {
+            Permission::updateOrCreate(
+                ['name' => $permissionName],
+                ['name' => $permissionName]
+            );
+        }
+    }
+}
