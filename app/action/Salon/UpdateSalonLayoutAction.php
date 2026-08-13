@@ -7,14 +7,17 @@ use App\Models\Salon;
 use App\Models\Section;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Arr;
-use Throwable;
 
 class UpdateSalonLayoutAction
 {
     public function execute(Salon $salon, array $data)
     {
         return DB::transaction(function () use ($salon, $data) {
-            /* $salon->update(Arr::only($data, ['name', 'address', 'image'])); */
+            $salon->update(Arr::only($data, ['name', 'address', 'image']));
+
+            if (isset($data['main_category']) || isset($data['child_categories'])) {
+                $this->syncCategories($salon, $data);
+            }
 
             if (isset($data['floors'])) {
                 $this->syncFloors($salon, $data['floors']);
@@ -41,17 +44,16 @@ class UpdateSalonLayoutAction
 
     protected function syncFloors(Salon $salon, array $floorsData)
     {
-        $incomingFloorData = collect($floorsData)->pluck('id')->filter()->all();
-        $salon->floors()->whereNotIn('id', $incomingFloorData)->delete();
+        $incomingFloorIds = collect($floorsData)->pluck('id')->filter()->all();
+        $salon->floors()->whereNotIn('id', $incomingFloorIds)->delete();
 
         foreach ($floorsData as $floorData) {
             $floor = $salon->floors()->updateOrCreate(
                 ['id' => $floorData['id'] ?? null],
                 [
                     'name' => $floorData['name'],
-                    'position' => $floorData['position'] ?? 0
+                    'position' => $floorData['position'] ?? 0,
                 ]
-
             );
 
             if (isset($floorData['sections'])) {
@@ -66,13 +68,17 @@ class UpdateSalonLayoutAction
         $floor->sections()->whereNotIn('id', $incomingSectionIds)->delete();
 
         foreach ($sectionsData as $sectionData) {
+            $payload = [
+                'name' => $sectionData['name'],
+                'position' => $sectionData['position'] ?? 0,
+                'image' => $sectionData['image'] ?? null,
+                'x' => $sectionData['x'] ?? 0,
+                'y' => $sectionData['y'] ?? 0,
+            ];
+
             $section = $floor->sections()->updateOrCreate(
                 ['id' => $sectionData['id'] ?? null],
-                [
-                    'name' => $sectionData['name'],
-                    'position' => $sectionData['position'] ?? 0,
-                    'image' => $sectionData['image'] ?? null
-                ]
+                $payload
             );
 
             if (isset($sectionData['seats'])) {
@@ -81,15 +87,25 @@ class UpdateSalonLayoutAction
         }
     }
 
-    protected function syncSeats(Section $section, array $SeatsData)
+    protected function syncSeats(Section $section, array $seatsData)
     {
-        $incomingSeatsData = collect($SeatsData)->pluck('id')->filter()->all();
-        $section->seats()->whereNotIn('id', $incomingSeatsData)->delete();
+        $incomingSeatIds = collect($seatsData)->pluck('id')->filter()->all();
+        $section->seats()->whereNotIn('id', $incomingSeatIds)->delete();
 
-        foreach ($SeatsData as $seatData) {
-            $seat = $section->seats()->updateOrCreate(
+        foreach ($seatsData as $seatData) {
+            $payload = [
+                'row' => $seatData['row'],
+                'number' => $seatData['number'],
+                'customText' => $seatData['customText'] ?? null,
+                'x' => $seatData['x'],
+                'y' => $seatData['y'],
+                'type' => $seatData['type'],
+                'price' => $seatData['price'],
+            ];
+
+            $section->seats()->updateOrCreate(
                 ['id' => $seatData['id'] ?? null],
-                Arr::except($seatData, ['id'])
+                $payload
             );
         }
     }

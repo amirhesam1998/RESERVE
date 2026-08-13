@@ -24,6 +24,17 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
 
+        // پذیرش تمام پورت‌های localhost و 127.0.0.1 به‌صورت پویا
+        config([
+            'sanctum.stateful' => array_merge(
+                explode(',', env('SANCTUM_STATEFUL_DOMAINS', 'localhost,127.0.0.1')),
+                [
+                    '#^localhost:\d+$#',
+                    '#^127\.0\.0\.1:\d+$#',
+                ]
+            )
+        ]);
+
 
         /*         Gate::policy(User::class, UserPolicy::class);
 

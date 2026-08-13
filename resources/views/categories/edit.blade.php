@@ -17,24 +17,19 @@
                     <span class="bg-blue-600 font-bold">{{ $message }} </span>
                 @enderror
 
-                <label class="block mb-2"> Parent Category </label>
-
-                <select name="parent_id" class="mb-4 w-full border rounded p-2">
-
-                    @if ($parent)
-                        <option value="{{ $parent->id }}">{{ $parent->name }}</option>
-                    @else
+                <div class="mb-4">
+                    <label class="block mb-2">Parent Category</label>
+                    <select name="parent_id" class="w-full border rounded p-2">
                         <option value="">NONE (main category)</option>
-                    @endif
 
-
-                    @foreach ($categories as $item)
-                        <option value="{{ $item->id }}"> {{ $item->name }} </option>
-                    @endforeach
-
-                    <option value=""> NONE (main category) </option>
-
-                </select>
+                        @foreach ($categories as $cat)
+                            <option value="{{ $cat['id'] }}"
+                                {{ old('parent_id', $category->parent_id ?? '') == $cat['id'] ? 'selected' : '' }}>
+                                {{ $cat['name'] }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
 
                 <button type="submit"
                     class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition">

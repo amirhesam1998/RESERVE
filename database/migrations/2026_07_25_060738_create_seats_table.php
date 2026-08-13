@@ -17,7 +17,7 @@ return new class extends Migration
             $table->unsignedInteger('row');
             // $table->unsignedInteger('column_number');
             $table->unsignedInteger('number');
-            $table->string('customText');
+            $table->string('customText')->nullable();
             $table->unsignedInteger('x');
             $table->unsignedInteger('y');
             $table->enum('type', ['regular', 'VIP', 'wheelchair'])->default('regular');

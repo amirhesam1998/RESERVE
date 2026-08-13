@@ -11,5 +11,4 @@ Route::middleware('jwt')->group(function () {
     Route::put('salons/{salon}', [SalonController::class, 'update'])->name('salons.update');
     Route::delete('/salons/{salon}', [SalonController::class, 'destroy'])->name('salons.destroy');
     Route::get('/salons/{salon}/layout', [SalonController::class, 'layout'])->name('salons.layout');
-    Route::put('/salons/{salon}/update/layout', [SalonController::class, 'updateLayout'])->name('salon.update.layout');
 });

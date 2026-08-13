@@ -58,6 +58,13 @@
     </main>
 
     <script>
+        window.APP_CONFIG = {
+            backendUrl: "{{ rtrim(config('app.url'), '/') }}",
+            frontendUrl: "{{ rtrim(config('app.frontend_url'), '/') }}",
+        };
+    </script>
+
+    <script>
         let categories = [];
 
         const select = document.getElementById('main-category');
@@ -80,9 +87,8 @@
 
                 categories = await response.json();
 
-                // Fill the dropdown recursively
                 categories.forEach(category => {
-                    appendCategory(category);
+                    appendCategoryOption(category);
                 });
 
             } catch (error) {
@@ -94,7 +100,7 @@
         /**
          * Add one category and all its children to the dropdown.
          */
-        function appendCategory(category, depth = 0) {
+        /* function appendCategory(category, depth = 0) {
 
             categories.forEach(category => {
                 appendCategory(category);
@@ -109,6 +115,22 @@
 
                 select.appendChild(option);
 
+            }
+        } */
+
+        function appendCategoryOption(category, depth = 0) {
+            const option = document.createElement('option');
+            option.value = category.id;
+
+            const prefix = depth > 0 ? '— '.repeat(depth) : '';
+            option.textContent = prefix + category.name;
+
+            select.appendChild(option);
+
+            if (category.children && category.children.length > 0) {
+                category.children.forEach(child => {
+                    appendCategoryOption(child, depth + 1);
+                });
             }
         }
 
@@ -303,7 +325,7 @@
                 }
 
                 console.log(result);
-                window.location.href = `/salons/${result.salon_id}/layout`;
+                window.location.href = `${window.APP_CONFIG.frontendUrl}/salons/${result.salon_id}/layout`;
 
             } catch (error) {
                 console.error('Network Error:', error);

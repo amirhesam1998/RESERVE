@@ -18,13 +18,16 @@
                     @enderror
                 </div class="mb-4">
 
-                <div class='mb-4'>
-                    <label class="block mb-2"> Parent Category </label>
+                <div class="mb-4">
+                    <label class="block mb-2">Parent Category</label>
                     <select name="parent_id" class="w-full border rounded p-2">
-                        <option value="">NONE (main category) </option>
+                        <option value="">NONE (main category)</option>
 
-                        @foreach ($categories as $category)
-                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                        @foreach ($categories as $cat)
+                            <option value="{{ $cat['id'] }}"
+                                {{ old('parent_id', $category->parent_id ?? '') == $cat['id'] ? 'selected' : '' }}>
+                                {{ $cat['name'] }}
+                            </option>
                         @endforeach
                     </select>
                 </div>

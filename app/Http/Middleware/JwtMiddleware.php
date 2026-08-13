@@ -2,16 +2,13 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\RefreshToken;
-use App\Models\User;
 use App\Services\JwtService;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cookie;
+
 use Symfony\Component\HttpFoundation\Response;
 use Tymon\JWTAuth\Exceptions\JWTException;
-use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
@@ -20,13 +17,10 @@ class JwtMiddleware
     public function __construct(
         private JwtService $jwtService
     ) {}
-    /**
-     * Handle an incoming request.
-     *
-     * @param  Closure(Request): (Response)  $next
-     */
+
     public function handle(Request $request, Closure $next): Response
     {
+
         $token = $request->cookie('access_token');
 
         if (!$token) {
@@ -35,45 +29,42 @@ class JwtMiddleware
 
         try {
             $user = JWTAuth::setToken($token)->authenticate();
-            if (! $user) {
-                return redirect()->route('login');
+            if (!$user) {
+                return $this->newAccessToken($request, $next);
             }
 
             Auth::setUser($user);
             return $next($request);
         } catch (TokenInvalidException $e) {
             return redirect()->route('login');
+        } catch (JWTException $e) {
+
+            return $this->newAccessToken($request, $next);
         }
     }
 
     protected function newAccessToken(Request $request, Closure $next)
     {
         $refreshToken = $request->cookie('refresh_token');
-        if (! $refreshToken) {
+        if (!$refreshToken) {
             return redirect()->route('login');
         }
 
         try {
-            $newAccessToken = JWTAuth::setToken($refreshToken)->refresh();
+            $newRefreshToken = JWTAuth::setToken($refreshToken)->refresh();
+            $newAccessToken = JWTAuth::customClaims(['type' => 'access'])->fromUser(
+                JWTAuth::setToken($newRefreshToken)->authenticate()
+            );
 
-            $user = JWTAuth::setToken($newAccessToken)->authenticate();
+            $user = JWTAuth::setToken($newRefreshToken)->authenticate();
             Auth::setUser($user);
 
             $response = $next($request);
 
-            $coockie = Cookie(
-                'access_token',
-                $newAccessToken,
-                15,
-                '/',
-                null,
-                false,
-                true,
-                false,
-                'lax'
-            );
+            $accessCoockie = cookie('access_token', $newAccessToken, 15, '/', null, false, true, false, 'Lax');
+            $refreshCoockie = cookie('refresh_token', $newRefreshToken, 60 * 24 * 7, '/', null, false, true, false, 'Lax');
 
-            return $response->withCookie($coockie);
+            return $response->withCookie($accessCoockie)->withCookie($refreshCoockie);
         } catch (JWTException $e) {
             return redirect()->route('login');
         }

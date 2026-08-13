@@ -35,7 +35,7 @@ class CategoryController extends Controller
         $this->authorize('categories', ['create-category']);
 
         try {
-            $rootCategories = Category::whereNull('parent_id')->with('children')->latest()->get();
+            $rootCategories = Category::whereNull('parent_id')->with('childrenRecursive')->latest()->get();
 
             $categories = [];
             foreach ($rootCategories as $root) {
@@ -94,9 +94,16 @@ class CategoryController extends Controller
                 $category->decentialids()
             );
 
-            $rootCategories = Category::whereNull('parent_id')->whereNotIn('id', $excluded)->with(['childrenRecursive' => function ($query) use ($excluded) {
-                $query->whereNotIn('id', $excluded);
-            }])->get();
+            $rootCategories = Category::whereNull('parent_id')->with('childrenRecursive')->get();
+
+            $allCategories = [];
+            foreach ($rootCategories as $root) {
+                $allCategories = array_merge($allCategories, $root->getFlatTree());
+            }
+
+            $categories = array_filter($allCategories, function ($item) use ($excluded) {
+                return !in_array($item['id'], $excluded);
+            });
 
             $parent = Category::find($category->parent_id);
 

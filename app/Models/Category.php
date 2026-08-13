@@ -48,10 +48,10 @@ class Category extends Model
     {
         $result[] = [
             'id' => $this->id,
-            'name' => $this->name
+            'name' => $prefix . $this->name
         ];
 
-        foreach ($this->children as $child) {
+        foreach ($this->childrenRecursive as $child) {
             $child->getFlatTree($prefix . '- ', $result);
         }
 

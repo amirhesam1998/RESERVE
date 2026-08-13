@@ -41,16 +41,16 @@ class UpdateSalonLayoutRequest extends FormRequest
 
             // Floors
             'floors' => ['required', 'array'],
-            'floors.*.id' => ['sometimes', 'exists:floors,id'],
+            'floors.*.id' => ['nullable', 'exists:floors,id'],
             'floors.*.name' => ['required', 'string', 'min:3'],
             'floors.*.position' => ['required', 'integer'],
 
             // Sections
             'floors.*.sections' => ['required', 'array'],
-            'floors.*.sections.*.id' => ['sometimes', 'exists:sections,id'],
+            'floors.*.sections.*.id' => ['nullable', 'exists:sections,id'],
             'floors.*.sections.*.name' => ['sometimes', 'min:3'],
             'floors.*.sections.*.position' => ['sometimes', 'integer'],
-            'floors.*.sections.*.image' => ['nullable', 'image'],
+            'floors.*.sections.*.image' => ['nullable'],
 
             // Seats
             'floors.*.sections.*.seats' => [
@@ -75,7 +75,7 @@ class UpdateSalonLayoutRequest extends FormRequest
                 'min:1',
             ],
             'floors.*.sections.*.seats.*.customText' => [
-                'required',
+                'nullable',
                 'string',
                 'min:3',
             ],
@@ -106,7 +106,7 @@ class UpdateSalonLayoutRequest extends FormRequest
             ],
 
             'floors.*.sections.*.seats.*.status' => [
-                'required',
+                'nullable',
                 Rule::in([
                     'available',
                     'reserved',

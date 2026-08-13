@@ -7,6 +7,7 @@ use App\Action\Salon\UpdateSalonLayoutAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Salon\UpdateSalonInfoRequest;
 use App\Http\Requests\Salon\UpdateSalonLayoutRequest;
+use App\Models\Category;
 use App\Models\Salon;
 use Throwable;
 
@@ -36,7 +37,12 @@ class SalonController extends Controller
         $this->authorize('salons', ['create-salons']);
 
         try {
-            return view('salons.create');
+
+            $categories = Category::whereNull('parent_id')
+                ->with('children')
+                ->get();
+
+            return view('salons.create', compact('categories'));
         } catch (Throwable $e) {
             return back()->with('error', 'Somthing went wrong, try again later');
         }
@@ -114,20 +120,6 @@ class SalonController extends Controller
             return view('salons.layout', compact('salon'));
         } catch (Throwable $e) {
             return back()->with('error', 'Somthing went wrong, try again later');
-        }
-    }
-
-    public function updateLayout(UpdateSalonLayoutRequest $request, Salon $salon)
-    {
-        $this->authorize('salons', ['edit-salon']);
-
-        try {
-            $action = new UpdateSalonLayoutAction;
-            $updatedSalon = $action->execute($salon, $request->all());
-
-            return redirect()->route('salons.index')->with('success', 'Salon updated successfully');
-        } catch (Throwable $e) {
-            return back()->withInput()->with('error', 'Somthing went wrong, try again later');
         }
     }
 }

@@ -22,6 +22,7 @@ class SaveLayoutRequest extends FormRequest
      */
     public function rules(): array
     {
+        // dd('a');
         return [
             'floors' => ['required', 'array'],
             'floors.*.name' => ['required', 'string'],
@@ -29,19 +30,19 @@ class SaveLayoutRequest extends FormRequest
             //--------------------------------------------------
             'floors.*.sections' => ['required', 'array'],
             'floors.*.sections.*.name' => ['required', 'string'],
-            'floors.*.sections.*.x' => ['required', 'integer'],
-            'floors.*.sections.*.y' => ['required', 'integer'],
+            'floors.*.sections.*.x' => ['required', 'numeric'],
+            'floors.*.sections.*.y' => ['required', 'numeric'],
             'floors.*.sections.*.image' => ['nullable', 'string'],
             //-------------------------------------------------
             'floors.*.sections.*.seats' => ['required', 'array'],
             'floors.*.sections.*.seats.*.row' => ['required', 'integer'],
             //'floors.*.sections.*.seats.*.column_number' => ['required', 'integer'],
             'floors.*.sections.*.seats.*.number' => ['required', 'integer'],
-            'floors.*.sections.*.seats.*.customText' => ['required', 'string'],
-            'floors.*.sections.*.seats.*.x' => ['required', 'integer'],
-            'floors.*.sections.*.seats.*.y' => ['required', 'integer'],
+            'floors.*.sections.*.seats.*.customText' => ['nullable', 'string'],
+            'floors.*.sections.*.seats.*.x' => ['required', 'numeric'],
+            'floors.*.sections.*.seats.*.y' => ['required', 'numeric'],
             'floors.*.sections.*.seats.*.type' => ['required', 'in:regular,VIP,wheelchair'],
-            'floors.*.sections.*.seats.*.status' => ['required', 'in:available,reserved,sold,blocked'],
+            'floors.*.sections.*.seats.*.status' => ['nullable', 'in:available,reserved,sold,blocked'],
             'floors.*.sections.*.seats.*.price' => ['required', 'numeric', 'min:0'],
         ];
     }
