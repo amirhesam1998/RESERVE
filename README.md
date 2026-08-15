@@ -8,7 +8,7 @@ This README covers the backend. For the frontend, go to `Reserv/README.md`.
 
 ## Requirements
 
-- PHP 8.2+
+- PHP 8.4+
 - Composer
 - MySQL 8+ (or MariaDB)
 - Node.js 18+ (needed for the frontend, see `Reserv/`)
