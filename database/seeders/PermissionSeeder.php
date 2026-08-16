@@ -25,6 +25,7 @@ class PermissionSeeder extends Seeder
             'editpass-clients',
             'delete-clients',
             'view-admins',
+            'view-clients',
             //------------------
             'view-categories',
             'create-category',
