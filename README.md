@@ -1,6 +1,7 @@
 # Rivas Project 1 — Salon Booking Platform
 
 Monorepo containing:
+
 - **Laravel API backend** (this root folder)
 - **Frontend** (vanilla JS + Konva editor) in [`Reserv/`](./Reserv/README.md) — see that folder's own README for frontend setup
 
@@ -63,7 +64,7 @@ This runs all seeders (`CategorySeeder`, `SalonSeeder`, `SectionSeeder`, `Permis
 ## 4. Run the backend
 
 ```bash
-php artisan serve
+php artisan serve --host=localhost
 ```
 
 Runs on `http://localhost:8000` by default (matches `APP_URL`).
@@ -79,11 +80,11 @@ See [`Reserv/README.md`](./Reserv/README.md) — it needs the backend running fi
 
 ## Common issues
 
-| Symptom | Likely cause |
-|---|---|
-| CORS error in browser console | Check `config/cors.php`, and make sure the failing route returns JSON (not a `redirect()`) |
-| Redirected to `/login` unexpectedly | `access_token` cookie expired and `refresh_token` missing/expired — log in again |
-| `SQLSTATE[HY000] [1049] Unknown database` | Create the database manually in MySQL before running migrations |
+| Symptom                                   | Likely cause                                                                               |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------ |
+| CORS error in browser console             | Check `config/cors.php`, and make sure the failing route returns JSON (not a `redirect()`) |
+| Redirected to `/login` unexpectedly       | `access_token` cookie expired and `refresh_token` missing/expired — log in again           |
+| `SQLSTATE[HY000] [1049] Unknown database` | Create the database manually in MySQL before running migrations                            |
 
 ## Tech stack
 

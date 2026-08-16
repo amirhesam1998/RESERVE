@@ -114,7 +114,7 @@ class SalonController extends Controller
 
     public function layout(Salon $salon)
     {
-        $this->authorize('salons', ['create-salons']);
+        //$this->authorize('salons', ['create-salons']);
 
         try {
             return view('salons.layout', compact('salon'));

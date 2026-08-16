@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('sections', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('x')->default(0);
-            $table->unsignedInteger('y')->default(0);
+            $table->double('x');
+            $table->double('y');
             $table->string('name');
             $table->string('image')->nullable();
             $table->foreignId('floor_id')->constrained('floors')->cascadeOnDelete();

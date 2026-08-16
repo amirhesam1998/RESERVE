@@ -51,12 +51,16 @@ class JwtMiddleware
         }
 
         try {
-            $newRefreshToken = JWTAuth::setToken($refreshToken)->refresh();
-            $newAccessToken = JWTAuth::customClaims(['type' => 'access'])->fromUser(
-                JWTAuth::setToken($newRefreshToken)->authenticate()
-            );
+            $user = JWTAuth::setToken($refreshToken)->authenticate();
+            if (!$user) {
+                return response()->json([
+                    'message' => 'Unauthenticated.'
+                ], 401);
+            }
 
-            $user = JWTAuth::setToken($newRefreshToken)->authenticate();
+            $newRefreshToken = JWTAuth::setToken($refreshToken)->refresh();
+            $newAccessToken = JWTAuth::customClaims(['type' => 'access'])->fromUser($user);
+
             Auth::setUser($user);
 
             $response = $next($request);
