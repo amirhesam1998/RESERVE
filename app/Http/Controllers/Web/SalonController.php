@@ -53,7 +53,7 @@ class SalonController extends Controller
      */
     public function edit(Salon $salon)
     {
-        $this->authorize('salons', ['edit-salons']);
+        $this->authorize('salons', ['edit-salon']);
 
         try {
             $mainCategory = $salon->categories->firstWhere('pivot.is_main', true);

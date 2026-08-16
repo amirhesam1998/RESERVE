@@ -23,7 +23,7 @@
                  Read More
              </button>
 
-             @can('salons', ['edit-salons'])
+             @can('salons', ['edit-salon'])
                  <a href={{ route('salons.edit', $salon->id) }}
                      class="bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-gray-100">
                      Edit
