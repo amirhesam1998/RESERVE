@@ -78,6 +78,10 @@ Runs on `http://localhost:8000` by default (matches `APP_URL`).
 
 ```bash
 cd Reserv
+cp .env.example .env
+```
+
+```bash
 npm install
 npm run dev
 ``
