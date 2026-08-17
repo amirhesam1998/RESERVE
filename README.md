@@ -11,14 +11,14 @@ This README covers the backend. For the frontend, go to `Reserv/README.md`.
 
 - PHP 8.4+
 - Composer
-- MySQL 8+ (or MariaDB)
+- MySQL 8+
 - Node.js 18+ (needed for the frontend, see `Reserv/`)
 
 ## 1. Clone the project
 
 ```bash
 git clone <repo-url>
-cd rivas-project1
+cd RESERVE
 ```
 
 This single clone gets you both the backend (root) and frontend (`Reserv/`).
@@ -27,6 +27,7 @@ This single clone gets you both the backend (root) and frontend (`Reserv/`).
 
 ```bash
 composer install
+npm install
 cp .env.example .env
 php artisan key:generate
 php artisan jwt:secret
@@ -67,9 +68,19 @@ This runs all seeders (`CategorySeeder`, `SalonSeeder`, `SectionSeeder`, `Permis
 php artisan serve --host=localhost
 ```
 
+```in new bash
+npm run dev
+```
+
 Runs on `http://localhost:8000` by default (matches `APP_URL`).
 
 ## 5. Run the frontend
+
+```bash
+cd Reserv
+npm install
+npm run dev
+``
 
 See [`Reserv/README.md`](./Reserv/README.md) — it needs the backend running first.
 
@@ -91,3 +102,4 @@ See [`Reserv/README.md`](./Reserv/README.md) — it needs the backend running fi
 - Laravel (PHP), MySQL
 - `tymon/jwt-auth` for JWT authentication (cookie-based)
 - Frontend: vanilla JS, HTML/CSS, Konva.js, Vite (see `Reserv/`)
+```
