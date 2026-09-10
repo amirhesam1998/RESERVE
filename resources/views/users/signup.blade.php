@@ -58,7 +58,7 @@
             </form>
         </div>
     </main>
-    <x-slot:scripts>
+{{--     <x-slot:scripts>
         <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
         <script>
@@ -67,7 +67,7 @@
             }
         </script>
 
-    </x-slot:scripts>
+    </x-slot:scripts> --}}
 
 
 

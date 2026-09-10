@@ -2,11 +2,15 @@
 
 namespace App\Action\Salon;
 
+use App\Models\Attribute;
 use App\Models\Floor;
+use App\Models\Product;
 use App\Models\Salon;
 use App\Models\Section;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
+
 
 class UpdateSalonLayoutAction
 {
@@ -90,7 +94,17 @@ class UpdateSalonLayoutAction
     protected function syncSeats(Section $section, array $seatsData)
     {
         $incomingSeatIds = collect($seatsData)->pluck('id')->filter()->all();
-        $section->seats()->whereNotIn('id', $incomingSeatIds)->delete();
+        $seatsToDelete = $section->seats()->whereNotIn('id', $incomingSeatIds)->get();
+        $productIdsToDelete = $seatsToDelete->pluck('product_id')->filter()->all();
+        $seatTypeAttribute = Attribute::firstOrCreate(['name' => 'نوع صندلی']);
+
+        foreach ($seatsToDelete as $deletedProduct) {
+            Product::where('id', $deletedProduct->product_id)->delete();
+        }
+
+        if (!empty($productIdsToDelete)) {
+            Product::whereIn('id', $productIdsToDelete)->delete();
+        }
 
         foreach ($seatsData as $seatData) {
             $payload = [
@@ -99,14 +113,58 @@ class UpdateSalonLayoutAction
                 'customText' => $seatData['customText'] ?? null,
                 'x' => $seatData['x'],
                 'y' => $seatData['y'],
-                'type' => $seatData['type'],
-                'price' => $seatData['price'],
+                'status' => $seatData['status'] ?? 'available',
             ];
 
-            $section->seats()->updateOrCreate(
+            $seat = $section->seats()->updateOrCreate(
                 ['id' => $seatData['id'] ?? null],
                 $payload
             );
+
+            $product = $seat->product;
+            if ($product) {
+                $product->update([
+                    'name' => "صندلی ردیف {$seat->row} شماره {$seat->number}"
+                ]);
+            } else {
+                $product = $seat->product()->create([
+                    'name' => "صندلی ردیف {$seat->row} شماره {$seat->number}",
+                    'slug' => 'seat-' . $seat->id . '-' . Str::random(6),
+                ]);
+
+                $seat->update(['product_id' => $product->id]);
+            }
+
+            $price = $product->prices()->first();
+            if ($price) {
+                $price->update([
+                    'price' => $seatData['price'],
+                    'final_price' => $seatData['price'],
+                ]);
+
+                $cartItems=$price->cartItems()->get();
+                foreach($cartItems as $cartItem){
+                    $cartItem->unit_price = $price->final_price;
+                    $cartItem->save();
+                }
+
+            } else {
+                $price = $product->prices()->create([
+                    'price' => $seatData['price'],
+                    'final_price' => $seatData['price'],
+                    'inventory' => 1
+                ]);
+            }
+
+            if (!empty($seatData['type'])) {
+                $typeValue = $seatTypeAttribute->attributeValues()->firstOrCreate([
+                    'value' => $seatData['type']
+                ]);
+
+                $price->attribute_values()->sync([$typeValue->id]);
+            } else {
+                $price->attribute_values()->sync([]);
+            }
         }
     }
 }

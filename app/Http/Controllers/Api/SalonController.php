@@ -10,6 +10,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Salon\CreateRequest;
 use App\Http\Requests\Salon\SaveLayoutRequest;
 use App\Http\Requests\Salon\UpdateSalonLayoutRequest;
+use App\Http\Resources\SalonListResource;
 use App\Models\Salon;
 use Illuminate\Support\Facades\Gate;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -17,8 +18,25 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
+use function Pest\Laravel\json;
+
 class SalonController extends Controller
 {
+    public function index()
+    {
+        $this->authorize('salons', ['view-salons']);
+
+        try {
+            $salons = Salon::with('categories')->latest()->get();
+
+            return response()->json([
+                'date' => SalonListResource::collection($salons)
+            ]);
+        } catch (Throwable $e) {
+            return back()->with('error', 'Somthing went wrong, try again later');
+        }
+    }
+
     /**
      * Store a newly created resource in storage.
      */
@@ -35,12 +53,14 @@ class SalonController extends Controller
                 $pivotData = [];
                 $pivotData[$request->main_category] = ['is_main' => true];
 
-
                 foreach ($request->child_categories ?? [] as $child) {
                     $pivotData[$child] = ['is_main' => false];
                 }
 
                 $salon->categories()->sync($pivotData);
+
+                $sessionsIds=$request->sessions ?? [];
+                $salon->showTimes()->sync($sessionsIds);
 
                 return $salon;
             });
@@ -50,7 +70,10 @@ class SalonController extends Controller
                 'token' => $request->cookie('access_token')
             ]);
         } catch (Throwable $e) {
-            return response()->json(['message' => 'somthing went wrong, try again later'], 500);
+            //return response()->json(['message' => 'somthing went wrong, try again later'], 500);
+            return response()->json([
+                'message' => $e->getMessage()
+            ]);
         }
     }
 
@@ -62,14 +85,17 @@ class SalonController extends Controller
         try {
             $salon->load([
                 'categories',
-                'floors.sections.seats'
+                'floors.sections.seats.product.prices.attribute_values'
             ]);
 
             return response()->json([
                 'data' => $salon
             ]);
         } catch (Throwable $e) {
-            return response()->json(['message' => 'somthing went wrong, try again later'], 500);
+           // return response()->json(['message' => 'somthing went wrong, try again later'], 500);
+           return response()->json([
+            'message' => $e->getMessage()
+           ]);
         }
     }
 

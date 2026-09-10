@@ -14,4 +14,14 @@ class Seat extends Model
     {
         return $this->belongsTo(Section::class);
     }
+
+    public function sessions()
+    {
+        $this->belongsToMany(Seat::class);
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
 }

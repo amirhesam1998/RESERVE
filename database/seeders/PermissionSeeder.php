@@ -35,7 +35,23 @@ class PermissionSeeder extends Seeder
             'view-salons',
             'create-salons',
             'edit-salon',
-            'delete-salon'
+            'delete-salon',
+            //-------------------
+            'view-attributes',
+            'create-attributes',
+            'update-attributes',
+            'delete-attributes',
+            //------------------
+            'view-sessions',
+            'create-sessions',
+            'edit-sessions',
+            'delete-sessions',
+            //-------------------
+            'view-attributes',
+            'create-attributes',
+            'edit-attributes',
+            'delete-attributes'
+
 
 
         ];

@@ -71,16 +71,21 @@ async function loadSalonLayoutFromBackend(salonId) {
                 name: sec.name,
                 x: sec.x,
                 y: sec.y,
-                seats: (sec.seats || []).map((seat) => ({
-                    id: `seat_${seat.id}`,
-                    row: seat.row,
-                    number: seat.number,
-                    x: seat.x,
-                    y: seat.y,
-                    price: seat.price || 0,
-                    type: seat.type || "regular",
-                    customText: seat.customText ?? null,
-                })),
+                seats: (sec.seats || []).map((seat) => {
+                    const price = seat.product?.prices?.[0];
+                    const typeAttributeValue = price?.attribute_values?.[0];
+
+                    return {
+                        id: `seat_${seat.id}`,
+                        row: seat.row,
+                        number: seat.number,
+                        x: seat.x,
+                        y: seat.y,
+                        price: price?.price ?? 0,
+                        type: typeAttributeValue?.value ?? "regular",
+                        customText: seat.customText ?? null,
+                    };
+                }),
             })),
         }));
 

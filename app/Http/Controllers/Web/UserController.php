@@ -4,26 +4,17 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\users\EditPassRequest;
-use App\Http\Requests\LoginRequest as RequestsLoginRequest;
-use App\Http\Requests\UserRequest as RequestsUserRequest;
-use App\Http\Requests\users\EditPassRequest as UsersEditPassRequest;
 use App\Http\Requests\users\UserRequest;
 use App\Http\Requests\users\EditRequest;
-use App\Http\Requests\users\LoginRequest;
 use App\Http\Requests\users\NewUserRequest;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Redirect;
-use ReflectionReference;
 use Tymon\JWTAuth\Exceptions\JWTException as ExceptionsJWTException;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use \Tymon\JWTAuth\Exceptions\JWTException;
-use \Illuminate\Routing\Controllers\Middleware;
-use League\CommonMark\Extension\Table\TableRow;
 use Throwable;
 
 class UserController extends Controller
@@ -36,10 +27,7 @@ class UserController extends Controller
     public function index()
     {
         $this->authorize('users-onlyPermission', ['view-clients']);
-
         try {
-
-
             $users = User::where('level', 'user')->get();
 
             return view('users.index', compact('users'));
@@ -86,11 +74,16 @@ class UserController extends Controller
 
             $data['password'] = bcrypt($data['password']);
 
-            User::create($data);
+            $user = User::create($data);
 
-            return redirect()->route('users.index');
+            $user->cart()->create([]);
+
+            return redirect()->route('login');
         } catch (Throwable $e) {
-            return back()->withInput()->with('error', 'Somthing went wrong, Try again later...');
+            // return back()->withInput()->with('error', 'Somthing went wrong, Try again later...');
+            return response()->json([
+                $e->getMessage()
+            ]);
         }
     }
 
@@ -135,6 +128,7 @@ class UserController extends Controller
             $user->update($request->validated());
 
             $roles = $request->input('roles');
+
             if (! empty($roles)) {
                 $this->authorize('users-onlyPermission', ['assign-roles']);
 
@@ -147,11 +141,20 @@ class UserController extends Controller
                 $user->level = 'user';
             }
 
-            $user->save();
+            $response = redirect()->route('users.show', Auth::id())->with('success', 'user-role table updated successfully');
+            $user = Auth::user();
+
+            if ($user->id === $user->id) {
+                $accessForget = cookie()->forget('access_token');
+            }
+            //$user->invalidateOldTokens();
 
             return Redirect()->route('users.show', Auth::user())->with('success', 'user-role table updated successfully');
         } catch (Throwable $e) {
-            return back()->withInput()->with('error', 'Somthing went wrong, Try again later...');
+            //return back()->withInput()->with('error', 'Somthing went wrong, Try again later...');
+            return response()->json([
+                'message' => $e->getMessage()
+            ]);
         }
     }
 
@@ -205,6 +208,7 @@ class UserController extends Controller
     // ============================= EDIT PASSFORM ============================
     public function editPassForm(User $user)
     {
+
         $this->authorize('users', [$user, 'editpass-clients']);
 
         try {
@@ -217,6 +221,7 @@ class UserController extends Controller
     // ============================== EDIT PASS ===============================
     public function editPass(EditPassRequest $request, User $user)
     {
+        dd(JWTAuth::setToken($request->cookie('access_token'))->getPayload()->toArray());
         $this->authorize('users', [$user, 'editpass-clients']);
 
         try {

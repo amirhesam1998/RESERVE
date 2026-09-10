@@ -30,7 +30,9 @@ class UpdateSalonInfoRequest extends FormRequest
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048', 'nullable'],
             'main_category' => ['required', 'exists:categories,id'],
             'child_categories' => ['nullable', 'array'],
-            'child_categories.*' => ['exists:categories,id']
+            'child_categories.*' => ['exists:categories,id'],
+            'sessions' => ['nullable', 'array'],
+            'sessions.*' => ['exists:showtimes,id']
         ];
     }
 }

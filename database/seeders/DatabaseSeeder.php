@@ -27,7 +27,8 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call([
-            PermissionSeeder::class
+            PermissionSeeder::class,
+            CartSeeder::class
         ]);
     }
 }

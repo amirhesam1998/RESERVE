@@ -30,6 +30,8 @@ class CreateRequest extends FormRequest
             'main_category' => ['required', 'exists:categories,id'],
             'child_categories' => ['nullable', 'array'],
             'child_categories.*' => ['exists:categories,id'],
+            'sessions' => ['nullable', 'array'],
+            'sessions.*' => ['exists:showtimes,id']
         ];
     }
 }

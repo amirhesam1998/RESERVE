@@ -38,6 +38,74 @@
                         @endforeach --}}
                 </div>
 
+                <div class="mb-6">
+                    <label class="block mb-2 font-medium">
+                        Existing Images
+                    </label>
+
+                    <div id="existing-images-container" class="grid grid-cols-3 gap-3">
+                        @foreach ($salon->images as $image)
+                            <div class="relative existing-image-item" data-image-id="{{ $image->id }}">
+                                <img src="{{ $image->url }}"
+                                    class="w-full h-32 object-cover rounded-lg border-2 {{ $image->is_primary ? 'border-blue-500' : 'border-gray-200' }}">
+
+                                @if ($image->is_primary)
+                                    <span
+                                        class="absolute top-1 right-1 bg-blue-600 text-white text-xs px-2 py-0.5 rounded">
+                                        Primary
+                                    </span>
+                                @else
+                                    <button type="button"
+                                        class="set-primary-btn absolute top-1 right-1 bg-white text-blue-600 text-xs px-2 py-0.5 rounded border border-blue-500 hover:bg-blue-50">
+                                        Set Primary
+                                    </button>
+                                @endif
+
+                                <button type="button"
+                                    class="delete-image-btn absolute top-1 left-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-700">
+                                    ✕
+                                </button>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    @if ($salon->images->isEmpty())
+                        <p class="text-gray-400 text-sm">No images uploaded yet.</p>
+                    @endif
+                </div>
+
+                <div class="mb-6">
+                    <label class="block mb-2 font-medium">
+                        Add New Images
+                    </label>
+                    <input type="file" id="new-images-input" multiple accept="image/*"
+                        class="w-full border rounded-lg p-3">
+                    <div id="new-image-preview-container" class="grid grid-cols-3 gap-3 mt-3"></div>
+
+                    <button type="button" onclick="uploadNewSalonImages()"
+                        class="mt-3 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm">
+                        Upload Selected Images
+                    </button>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block mb-2 font-medium">
+                        SESSIONS
+                    </label>
+
+                    @foreach ($sessions as $session)
+                        <label
+                            class="flex items-center space-x-3 bg-gray-50 p-3 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition">
+                            <input type="checkbox" name="sessions[]" value="{{ $session->id }}"
+                                class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                {{ (is_array(old('sessions')) && in_array($session->id, old('sessions'))) || $salon->showTimes->contains($session->id) ? 'checked' : '' }}>
+                            <span class="text-gray-700 font-medium">
+                                {{ $session->start_time->format('H:i') }} - {{ $session->end_time->format('H:i') }}
+                            </span>
+                        </label>
+                    @endforeach
+                </div>
+
 
                 <button type="submit"
                     class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition">
@@ -235,7 +303,162 @@
                 uncheckChildren(child.value);
 
             });
+        }
 
+        const salonId = {{ $salon->id }};
+
+        // حذف یه تصویر موجود
+        document.getElementById('existing-images-container')?.addEventListener('click', async function(e) {
+            if (!e.target.classList.contains('delete-image-btn')) return;
+
+            if (!confirm('آیا مطمئن هستید می‌خواهید این تصویر را حذف کنید؟')) return;
+
+            const item = e.target.closest('.existing-image-item');
+            const imageId = item.dataset.imageId;
+
+            try {
+                const response = await fetch(`/api/images/${imageId}`, {
+                    method: 'DELETE',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute(
+                            'content') || '',
+                    },
+                });
+
+                if (!response.ok) {
+                    const result = await response.json();
+                    alert('خطا در حذف تصویر: ' + (result.message || 'خطای ناشناخته'));
+                    return;
+                }
+
+                item.remove();
+            } catch (error) {
+                console.error(error);
+                alert('خطا در ارتباط با سرور هنگام حذف تصویر.');
+            }
+        });
+
+        // انتخاب یک تصویر به‌عنوان primary
+        document.getElementById('existing-images-container')?.addEventListener('click', async function(e) {
+            if (!e.target.classList.contains('set-primary-btn')) return;
+
+            const item = e.target.closest('.existing-image-item');
+            const imageId = item.dataset.imageId;
+
+            try {
+                const response = await fetch(`/api/images/${imageId}/primary`, {
+                    method: 'PATCH',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute(
+                            'content') || '',
+                    },
+                });
+
+                if (!response.ok) {
+                    const result = await response.json();
+                    alert('خطا در تنظیم تصویر اصلی: ' + (result.message || 'خطای ناشناخته'));
+                    return;
+                }
+
+                // بعد از موفقیت، صفحه رو رفرش می‌کنیم تا وضعیت جدید primary درست نمایش داده بشه
+                window.location.reload();
+            } catch (error) {
+                console.error(error);
+                alert('خطا در ارتباط با سرور.');
+            }
+        });
+
+        // پیش‌نمایش و مدیریت تصاویر جدیدی که کاربر می‌خواد اضافه کنه
+        let selectedNewImages = [];
+
+        const newImagesInput = document.getElementById('new-images-input');
+        const newImagePreviewContainer = document.getElementById('new-image-preview-container');
+
+        newImagesInput?.addEventListener('change', function(e) {
+            const newFiles = Array.from(e.target.files);
+            selectedNewImages = selectedNewImages.concat(newFiles);
+
+            syncNewImagesInput();
+            renderNewImagePreviews();
+        });
+
+        function renderNewImagePreviews() {
+            newImagePreviewContainer.innerHTML = '';
+
+            selectedNewImages.forEach((file, index) => {
+                const reader = new FileReader();
+
+                reader.onload = function(event) {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'relative';
+
+                    wrapper.innerHTML = `
+                <img src="${event.target.result}"
+                     class="w-full h-32 object-cover rounded-lg border border-gray-200">
+                <button type="button"
+                        data-index="${index}"
+                        class="remove-new-preview-btn absolute top-1 left-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-700">
+                    ✕
+                </button>
+            `;
+
+                    newImagePreviewContainer.appendChild(wrapper);
+                };
+
+                reader.readAsDataURL(file);
+            });
+        }
+
+        newImagePreviewContainer.addEventListener('click', function(e) {
+            if (!e.target.classList.contains('remove-new-preview-btn')) return;
+
+            const index = parseInt(e.target.dataset.index, 10);
+            selectedNewImages.splice(index, 1);
+
+            syncNewImagesInput();
+            renderNewImagePreviews();
+        });
+
+        function syncNewImagesInput() {
+            const dataTransfer = new DataTransfer();
+            selectedNewImages.forEach(file => dataTransfer.items.add(file));
+            newImagesInput.files = dataTransfer.files;
+        }
+
+        // آپلود تصاویر جدید به سالن (جدا از فرم اصلی، بلافاصله بعد از انتخاب)
+        async function uploadNewSalonImages() {
+            if (selectedNewImages.length === 0) return;
+
+            const formData = new FormData();
+            selectedNewImages.forEach(file => formData.append('images[]', file));
+
+            try {
+                const response = await fetch(`/api/salon/${salonId}/images`, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute(
+                            'content') || '',
+                    },
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    const result = await response.json();
+                    alert('خطا در آپلود تصاویر: ' + (result.message || 'خطای ناشناخته'));
+                    return;
+                }
+
+                window.location.reload();
+            } catch (error) {
+                console.error(error);
+                alert('خطا در ارتباط با سرور هنگام آپلود تصاویر.');
+            }
         }
     </script>
 

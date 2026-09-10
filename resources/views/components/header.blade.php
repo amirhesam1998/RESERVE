@@ -72,6 +72,10 @@
                 @endcan
 
 
+                <a href="{{ route('carts.show', auth()->user()) }}"
+                    class="text-blue-600 text-white bg-blue-500 px-4 py-2 rounded-lg cursor-pointer">
+                    Cart items
+                </a>
             </div>
         @endauth
     </div>

@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('seats', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('product_id')->nullable()->constrained('products')->cascadeOnDelete();
             $table->foreignId('section_id')->constrained('sections')->cascadeOnDelete();
             $table->unsignedInteger('row');
             // $table->unsignedInteger('column_number');
@@ -20,9 +21,9 @@ return new class extends Migration
             $table->string('customText')->nullable();
             $table->unsignedInteger('x');
             $table->unsignedInteger('y');
-            $table->enum('type', ['regular', 'VIP', 'wheelchair'])->default('regular');
+            //$table->enum('type', ['regular', 'VIP', 'wheelchair'])->default('regular');
             $table->enum('status', ['available', 'reserved', 'sold', 'blocked'])->default('available');
-            $table->decimal('price', 10, 2)->default(0);
+            //$table->decimal('price', 10, 2)->default(0);
             $table->timestamps();
         });
     }

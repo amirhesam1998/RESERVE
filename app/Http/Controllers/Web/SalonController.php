@@ -7,8 +7,10 @@ use App\Action\Salon\UpdateSalonLayoutAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Salon\UpdateSalonInfoRequest;
 use App\Http\Requests\Salon\UpdateSalonLayoutRequest;
+use App\Http\Resources\SalonListResource;
 use App\Models\Category;
 use App\Models\Salon;
+use App\Models\Showtime;
 use Throwable;
 
 class SalonController extends Controller
@@ -21,7 +23,11 @@ class SalonController extends Controller
         $this->authorize('salons', ['view-salons']);
 
         try {
-            $salons = Salon::with('categories')->latest()->get();
+            $salons = Salon::with('categories')->with('showTimes')->latest()->get();
+
+
+            /*$result = ['date' => SalonListResource::collection($salons)];
+            dd($result); */
 
             return view('salons.index', compact('salons'));
         } catch (Throwable $e) {
@@ -42,9 +48,12 @@ class SalonController extends Controller
                 ->with('children')
                 ->get();
 
-            return view('salons.create', compact('categories'));
+            $sessions=Showtime::latest()->get();
+            
+            return view('salons.create', compact('categories', 'sessions'));
         } catch (Throwable $e) {
-            return back()->with('error', 'Somthing went wrong, try again later');
+            //return back()->with('error', 'Somthing went wrong, try again later');
+            dd($e->getMessage());
         }
     }
 
@@ -56,11 +65,15 @@ class SalonController extends Controller
         $this->authorize('salons', ['edit-salon']);
 
         try {
+            $salon->load('images');
+
             $mainCategory = $salon->categories->firstWhere('pivot.is_main', true);
 
             $assignedChildCategories = $salon->categories->where('pivot.is_main', false)->pluck('id')->toArray();
 
-            return view('salons.edit', compact('salon', 'mainCategory', 'assignedChildCategories'));
+            $sessions=Showtime::latest()->get();
+
+            return view('salons.edit', compact('salon', 'mainCategory', 'assignedChildCategories', 'sessions'));
         } catch (Throwable $e) {
             return back()->with('error', 'Somthing went wrong, try again later');
         }
@@ -88,7 +101,11 @@ class SalonController extends Controller
                 $categoryData[$child] = ['is_main' => false];
             }
 
+            $sessionIds=$request->sessions ?? [];
+            $salon->showTimes()->sync($sessionIds);
+
             $salon->categories()->sync($categoryData);
+
 
             return redirect()->route('salons.index');
         } catch (Throwable $e) {

@@ -6,7 +6,6 @@ use App\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
-use App\Policies\UserPolicy;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -173,6 +172,42 @@ class AppServiceProvider extends ServiceProvider
             }
 
             return false;
+        });
+
+        // ------------------------------ RESERVE GATES -----------------------------
+        Gate::define('reservs', function (User $currentUser, string $ability) {
+            if ($currentUser->hasPermission($ability)) {
+                return true;
+            }
+
+            return false;
+        });
+
+        // ------------------------------ATTRIBUTES GATES ---------------------------
+        Gate::define('attributes', function (User $currentUser, string $ability) {
+            if ($currentUser->hasPermission($ability)) {
+                return true;
+            }
+
+            return false;
+        });
+
+        // ------------------------------ SESSIONS GATES ----------------------------
+        Gate::define('sessions', function(User $currentUser, string $ability){
+            if($currentUser->hasPermission($ability)){
+                return true;
+            }
+
+            return false;
+        }); 
+        // ------------------------- ATTRIBUTES GATES ------------------------------
+        Gate::define('attributes', function(User $currentUser, string $ability){
+            if($currentUser->hasPermission($ability)){
+                return true;
+            }
+
+            return false;
+
         });
     }
 }

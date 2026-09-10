@@ -27,7 +27,9 @@ class User extends Authenticatable implements JWTSubject
     #[Override]
     public function getJWTCustomClaims()
     {
-        return [];
+        return [
+            'permissions' => $this->getAllPermissions(),
+        ];
     }
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
@@ -73,5 +75,29 @@ class User extends Authenticatable implements JWTSubject
         }
 
         return false;
+    }
+
+    public function getAllPermissions()
+    {
+        if ($this->level === 'creator') {
+            return ['*'];
+        }
+
+        return $this->roles()->with('permissions')->get()->pluck('permissions')->flatten()->pluck('name')->unique()->values()->toArray();
+    }
+
+    public function cart()
+    {
+        return $this->hasOne(Cart::class);
+    }
+
+    public function reserves()
+    {
+        return $this->hasMany(Reserve::class);
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
     }
 }

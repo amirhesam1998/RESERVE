@@ -23,4 +23,17 @@ class Salon extends Model
     {
         return $this->hasMany(Floor::class);
     }
+
+    public function showTimes()
+    {
+        return $this->belongsToMany(Showtime::class, 'salons_showtimes');
+    }
+
+    public function images(){
+        return $this->morphMany(Image::class, 'imageable');
+    }
+
+    public function primaryImage(){
+        return $this->morphOne(Image::class, 'imageable')->where('is_primary', true);
+    }
 }

@@ -11,9 +11,9 @@ class UserController extends Controller
 {
     public function login(LoginRequest $request)
     {
-        try {
-            $credentials = $request->validated();
+        $credentials = $request->validated();
 
+        try {
             $token = JWTAuth::attempt($credentials);
             if ($token === false) {
                 return response()->json([
@@ -25,7 +25,7 @@ class UserController extends Controller
             $accessToken = JWTAuth::customClaims(['type' => 'access'])->fromUser($user);
 
             $refreshTTl = 60 * 24 * 7;
-            $refreshToken = auth('api')->setTTL($refreshTTl)->claims(['type' => 'refresh'])->fromUser($user);
+            $refreshToken = auth('api')->setTTL($refreshTTl)->claims(['type' => 'refresh'], ['permissions' => []])->fromUser($user);
 
             return response()->json([
                 'accesstoken' => $accessToken,
