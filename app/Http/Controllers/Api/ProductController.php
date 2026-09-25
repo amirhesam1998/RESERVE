@@ -42,8 +42,8 @@ class ProductController extends Controller
                 'main_category' => ['required'],
                 'child_categories' => ['nullable'],
                 'prices' => ['array', 'required'],
-                
-            ])
+
+            ]);
 
         }catch(Throwable $e){
 
